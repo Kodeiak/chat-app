@@ -2,18 +2,19 @@ import React, { Component } from "react";
 import { View, Text, TextInput, Pressable, ImageBackground } from "react-native";
 
 export default class Start extends React.Component {
-  // constructor(props) {
-  //   super(props);
+  constructor(props) {
+    super(props);
 
-  //   this.state = {
-  //     text: ""
-  //   }
-  // }
+    this.state = {
+      name: ""
+    }
+  }
 
-  // handleInput = (event) => {
-  //   value = event.target.value;
+  // handleInput = (value) => {
+  //   console.log(value);
+  //   // value = event.target.value;
   //   this.state = {
-  //     text: value
+  //     name: value
   //   }
   // }
  
@@ -30,8 +31,8 @@ export default class Start extends React.Component {
           <View style={{flex: .50, justifyContent: "space-between", backgroundColor: "white", width: 350, height: 150, margin: 25}}>
             <TextInput
               style={{flex: .6, margin: 15, borderColor: "black", borderWidth: 1, padding: 10}}
-              // onChangeText={this.handleInput}
-              // value={this.state.text}
+              onChangeText={name => this.setState({name})}
+              value={this.state.name}
               placeholder="Your Name"
             ></TextInput>
             <View style={{flex: 2, paddingTop: 15}}>
@@ -45,7 +46,7 @@ export default class Start extends React.Component {
             </View>
             <View style={{flex: 1, margin: 15, height: 50 }}>
               <Pressable 
-                onPress={() => this.props.navigation.navigate("Chat")}
+                onPress={() => this.props.navigation.navigate("Chat", {name: this.state.name})}
                 style={{backgroundColor: "#757083", flex: 1, justifyContent: "center", alignItems: "center"}}
               >
                 <Text style={{fontSize: 16, fontWeight: "600", color: "#FFF"}}>
