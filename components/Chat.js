@@ -46,7 +46,8 @@ export default function Chat(props) {
     });
     
     const messagesQuery = query(
-      messagesCollection
+      messagesCollection,
+      orderBy("createdAt", "desc")
     );
     
     let unsubscribe = onSnapshot( messagesQuery, onCollectionUpdate );
@@ -59,7 +60,6 @@ export default function Chat(props) {
   
   const onCollectionUpdate = (querySnapshot) => {
     let messages = [];
-    console.log(messages);
 
     querySnapshot.forEach((doc) => {
       let data = doc.data();
@@ -72,17 +72,18 @@ export default function Chat(props) {
       });
     });
     console.log(messages);
-    setMessages({
+    setMessages(
       messages
-    });
+    );
   };
 
   const addMessage = (message) => {
+    console.log(message);
     addDoc(messagesCollection, {
-      _id,
-      createdAt,
+      _id: message._id,
+      createdAt: message.createdAt,
       text: message.text || "",
-      user
+      user: message.user
       // image: message.image || null,
       // location: message.location || null
     })
@@ -93,7 +94,7 @@ export default function Chat(props) {
   }
 
   const onSend = (messages = []) => {
-    // addMessage(messages[0]);
+    addMessage(messages[0]);
     setMessages((prevMessages) => GiftedChat.append(prevMessages, messages));
   }
 
@@ -112,7 +113,7 @@ export default function Chat(props) {
     <View style={{flex: 1}}>
       <GiftedChat
         renderBubble={renderBubble}
-        // messages={messages}
+        messages={messages}
         onSend={messages => onSend(messages)}
         user={{
           _id:uid,
