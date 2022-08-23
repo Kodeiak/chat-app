@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Platform, KeyboardAvoidingView, Text } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { GiftedChat, Bubble } from "react-native-gifted-chat";
+import { GiftedChat, Bubble, InputToolbar } from "react-native-gifted-chat";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 // const firebase = require("firebase");
 // require("firebase/firestore");
@@ -32,32 +35,58 @@ export default function Chat(props) {
   let { name } = props.route.params;
   const [messages, setMessages] = useState([]);
   const [uid, setUid] = useState("");
+  const [isConnected, setIsConnected] = useState();
 
   const messagesCollection = collection(db, "messages");
 
   useEffect(() => {
-
-    const authUnsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        signInAnonymously(auth);
+    NetInfo.fetch().then((connection) => {
+      if (connection.isConnected) {
+        setIsConnected(true);
+      } else {
+        setIsConnected(false);
       }
-
-      setUid(user.uid);
     });
-    
-    const messagesQuery = query(
-      messagesCollection,
-      orderBy("createdAt", "desc")
-    );
-    
-    let unsubscribe = onSnapshot( messagesQuery, onCollectionUpdate );
+  }, []); 
 
-    return () => {
-      unsubscribe();
-      authUnsubscribe();
+
+  useEffect(() => {
+
+    if (isConnected) {
+
+      console.log("connected");
+
+      const authUnsubscribe = onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          signInAnonymously(auth);
+        }
+
+        setUid(user.uid);
+      });
+      
+      const messagesQuery = query(
+        messagesCollection,
+        orderBy("createdAt", "desc")
+      );
+      
+      let unsubscribe = onSnapshot( messagesQuery, onCollectionUpdate );
+
+      return () => {
+        unsubscribe();
+        authUnsubscribe();
+      }
+    } else {
+      console.log("not connected");
+      getMessages();
     }
-  }, []);
-  
+  }, [isConnected]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveMessages();
+    }
+  }, [messages]);
+ 
   const onCollectionUpdate = (querySnapshot) => {
     let messages = [];
 
@@ -71,14 +100,13 @@ export default function Chat(props) {
         user: data.user
       });
     });
-    console.log(messages);
+
     setMessages(
       messages
     );
   };
 
   const addMessage = (message) => {
-    console.log(message);
     addDoc(messagesCollection, {
       _id: message._id,
       createdAt: message.createdAt,
@@ -91,11 +119,42 @@ export default function Chat(props) {
 
   const _onPress = () => {
     alert("You tapped the button!")
-  }
+  };
 
   const onSend = (messages = []) => {
     addMessage(messages[0]);
     setMessages((prevMessages) => GiftedChat.append(prevMessages, messages));
+    // saveMessages();
+    console.log(AsyncStorage.getItem("messages"));
+  };
+
+  const saveMessages = async () => {
+    try {
+      const jsonMessages = JSON.stringify(messages);
+      await AsyncStorage.setItem("messages", jsonMessages);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const getMessages = async () => {
+    let messages = "";
+    
+    try {
+      messages = await AsyncStorage.getItem("messages") || [];
+      setMessages(JSON.parse(messages));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const deleteMessages = async () => {
+    try {
+      await AsyncStorage.removeItem("messages");
+      setMessages([]);
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   const renderBubble = (props) => (
@@ -108,11 +167,18 @@ export default function Chat(props) {
       }}
     />
   );
+
+  const renderInputToolbar = (props) => {
+    if (isConnected) {
+      return <InputToolbar {...props} />
+    }
+  }
   
     return (
     <View style={{flex: 1}}>
       <GiftedChat
         renderBubble={renderBubble}
+        renderInputToolbar={renderInputToolbar}
         messages={messages}
         onSend={messages => onSend(messages)}
         user={{
