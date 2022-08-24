@@ -2,16 +2,55 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import { useActionSheet } from "@expo/react-native-action-sheet";
+import { getStorage, uploadBytes, getDownloadURL, ref } from "firebase/storage";
+
+import { app, db } from "./FirebaseConfig";
 
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import MapView from 'react-native-maps';
+
+const storage = getStorage();
 
 export default function CustomActions(props) {
   const { showActionSheetWithOptions } = useActionSheet();
 
   [image, setImage] = useState();
   [location, setLocation] = useState();
+
+  // add image to firebase then return image's firebase uri
+  const uploadImage = async (uri) => {
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function(e) {
+        console.log("xhr failed");
+        console.log(e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", uri, true);
+      xhr.send(null);
+    });
+
+    const imageNameBefore = uri.split("/");
+    const imageName = imageNameBefore[imageNameBefore - 1];
+
+    const imageRef = ref(storage, `images/${imageName}`);
+
+    return uploadBytes(imageRef, blob).then( async (snapshot) =>{
+      blob.close();
+      return getDownloadURL(snapshot.ref)
+        .then((url) => {
+          console.log(url);
+          return url;
+        })
+        .catch((error) => {
+          console.log("failed uploadBytes", error);
+        })
+    });
+  }
 
   // define custom action functions
   const pickImage = async () => {
@@ -24,8 +63,9 @@ export default function CustomActions(props) {
         }).catch((error) => console.log(error));
 
         if (!result.cancelled) {
+          const imageUrl = await uploadImage(result.uri);
           props.onSend({
-            image: result
+            image: imageUrl
           });
         }
       }
@@ -46,8 +86,9 @@ export default function CustomActions(props) {
         }).catch((error) => console.log(error));
   
         if (!result.cancelled) {
+          const photoUrl = await uploadImage(result.uri);
           props.onSend({
-            image: result
+            image: photoUrl
           });
         }
       }
@@ -106,8 +147,8 @@ export default function CustomActions(props) {
 
   return (
     <TouchableOpacity style={[styles.container]} onPress={onActionPress}>
-      <View style={[styles.wrapper]}>
-        <Text style={[styles.iconText]}>+</Text>
+      <View style={[styles.wrapper, props.wrapperStyle]}>
+        <Text style={[styles.iconText, props.iconTextStyle]}>+</Text>
       </View>
     </TouchableOpacity>
   )

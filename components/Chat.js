@@ -7,31 +7,15 @@ import { GiftedChat, Bubble, InputToolbar } from "react-native-gifted-chat";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
-// import CustomActions from "./CustomActions";
+import CustomActions from "./CustomActions";
 
 // const firebase = require("firebase");
 // require("firebase/firestore");
-import { db } from "./FirebaseConfig";
+import { app, db } from "./FirebaseConfig";
 // import { initializeApp } from "firebase/app";
-import { doc, onSnapshot, getFirestore, collection, addDoc, query, orderBy } from "firebase/firestore";
+import { onSnapshot, collection, addDoc, query, orderBy } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signInAnonymously } from "firebase/auth";
 
-
-// // Your web app's Firebase configuration
-// // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-// const firebaseConfig = {
-//   apiKey: "AIzaSyB4aNoVrNn8nECgPJk66j-fmXZJ-aduvcQ",
-//   authDomain: "test-65934.firebaseapp.com",
-//   projectId: "test-65934",
-//   storageBucket: "test-65934.appspot.com",
-//   messagingSenderId: "997041391762",
-//   appId: "1:997041391762:web:13c476cb0bc1493a7e3e4b",
-//   measurementId: "G-3D68KQ28DD"
-// };
-
-// // Initialize Firebase
-// const app = initializeApp(firebaseConfig);
-// const db = getFirestore(app);
 const auth = getAuth();
 
 
@@ -101,9 +85,9 @@ export default function Chat(props) {
         _id: data._id,
         text: data.text,
         createdAt: data.createdAt.toDate(),
-        user: data.user
-        // image: data.image || null,
-        // location: data.location || null
+        user: data.user,
+        image: data.image || null,
+        location: data.location || null
       });
     });
 
@@ -117,9 +101,9 @@ export default function Chat(props) {
       _id: message._id,
       createdAt: message.createdAt,
       text: message.text || "",
-      user: message.user
-      // image: message.image || null,
-      // location: message.location || null
+      user: message.user,
+      image: message.image || null,
+      location: message.location || null
     })
   }
 
@@ -170,8 +154,19 @@ export default function Chat(props) {
       {...props}
       wrapperStyle={{ 
         right: {
-          backgroundColor: "#000"
+          backgroundColor: "lightblue"
+        },
+        left: {
+          backgroundColor: "teal"
         }
+      }}
+      textStyle={{
+        right: {
+          color: "black",
+        },
+        left: {
+          color: "white",
+        },
       }}
     />
   );
@@ -182,39 +177,39 @@ export default function Chat(props) {
     }
   };
   
-  // const renderCustomActions = (props) => {
-  //   return <CustomActions {...props} />
-  // };
+  const renderCustomActions = (props) => {
+    return <CustomActions {...props} />
+  };
 
   // check message for map value and render map view
-  // const renderCustomView = (props) => {
-  //   const { currentMessage } = props;
-  //   if (currentMessage.location) {
-  //     return <MapView
-  //       style={{
-  //         width: 150,
-  //         height: 100,
-  //         borderRadius: 13,
-  //         margin: 3
-  //       }}
-  //       region={{
-  //         latitude: currentMessage.location.latitude,
-  //         longitude: currentMessage.location.longitude,
-  //         latitudeDelta: 0.0922,
-  //         longitudeDelta: 0.0421,
-  //       }}
-  //     />
-  //   }
-  //   return null;
-  // }
+  const renderCustomView = (props) => {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return <MapView
+        style={{
+          width: 150,
+          height: 100,
+          borderRadius: 13,
+          margin: 3
+        }}
+        region={{
+          latitude: currentMessage.location.latitude,
+          longitude: currentMessage.location.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+      />
+    }
+    return null;
+  }
 
     return (
     <View style={{flex: 1}}>
       <GiftedChat
         renderBubble={renderBubble}
         renderInputToolbar={renderInputToolbar}
-        // renderActions={renderCustomActions}
-        // renderCustomView={renderCustomView}
+        renderActions={renderCustomActions}
+        renderCustomView={renderCustomView}
         messages={messages}
         onSend={messages => onSend(messages)}
         user={{
