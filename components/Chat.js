@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, Platform, KeyboardAvoidingView, Text } from "react-native";
+import MapView from "react-native-maps";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { GiftedChat, Bubble, InputToolbar } from "react-native-gifted-chat";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
+
+// import CustomActions from "./CustomActions";
 
 // const firebase = require("firebase");
 // require("firebase/firestore");
@@ -98,6 +101,8 @@ export default function Chat(props) {
         text: data.text,
         createdAt: data.createdAt.toDate(),
         user: data.user
+        // image: data.image || null,
+        // location: data.location || null
       });
     });
 
@@ -142,6 +147,7 @@ export default function Chat(props) {
     
     try {
       messages = await AsyncStorage.getItem("messages") || [];
+      // console.log(JSON.parse(messages));
       setMessages(JSON.parse(messages));
     } catch (error) {
       console.log(error.message);
@@ -157,6 +163,7 @@ export default function Chat(props) {
     }
   }
 
+  // GiftedChat methods
   const renderBubble = (props) => (
     <Bubble 
       {...props}
@@ -172,13 +179,41 @@ export default function Chat(props) {
     if (isConnected) {
       return <InputToolbar {...props} />
     }
-  }
+  };
   
+  // const renderCustomActions = (props) => {
+  //   return <CustomActions {...props} />
+  // };
+
+  // check message for map value and render map view
+  // const renderCustomView = (props) => {
+  //   const { currentMessage } = props;
+  //   if (currentMessage.location) {
+  //     return <MapView
+  //       style={{
+  //         width: 150,
+  //         height: 100,
+  //         borderRadius: 13,
+  //         margin: 3
+  //       }}
+  //       region={{
+  //         latitude: currentMessage.location.latitude,
+  //         longitude: currentMessage.location.longitude,
+  //         latitudeDelta: 0.0922,
+  //         longitudeDelta: 0.0421,
+  //       }}
+  //     />
+  //   }
+  //   return null;
+  // }
+
     return (
     <View style={{flex: 1}}>
       <GiftedChat
         renderBubble={renderBubble}
         renderInputToolbar={renderInputToolbar}
+        // renderActions={renderCustomActions}
+        // renderCustomView={renderCustomView}
         messages={messages}
         onSend={messages => onSend(messages)}
         user={{
