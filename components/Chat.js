@@ -18,7 +18,6 @@ import { getAuth, onAuthStateChanged, signInAnonymously } from "firebase/auth";
 
 const auth = getAuth();
 
-
 export default function Chat(props) {
   let { name } = props.route.params;
   const [messages, setMessages] = useState([]);
@@ -39,16 +38,11 @@ export default function Chat(props) {
 
 
   useEffect(() => {
-
     if (isConnected) {
-
-      console.log("connected");
-
       const authUnsubscribe = onAuthStateChanged(auth, (user) => {
         if (!user) {
           signInAnonymously(auth);
         }
-
         setUid(user.uid);
       });
       
@@ -225,31 +219,8 @@ export default function Chat(props) {
         accessibilityRole="button"
         onPress={_onPress}
       >
-        {/* <View>
-          <Text>Image or geolocation</Text>
-        </View> */}
       </TouchableOpacity>
       { Platform.OS === "android" ? <KeyboardAvoidingView behavior="height" /> : null }
     </View>
   )
 }
-
-
-    // setMessages([
-    //   {
-    //     _id: 1,
-    //     text: "Hello developer",
-    //     createdAt: new Date(),
-    //     user: {
-    //       _id: 2,
-    //       name: "React Native",
-    //       // avatar: "https://placeimg.com/140/140/any"
-    //     }
-    //   },
-    //   {
-    //     _id: 2,
-    //     text: `${props.route.params.name} has entered the chat`,
-    //     createdAt: new Date(),
-    //     system: true
-    //   },
-    // ]);
