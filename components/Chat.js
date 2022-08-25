@@ -225,9 +225,9 @@ export default function Chat(props) {
         accessibilityRole="button"
         onPress={_onPress}
       >
-        <View>
+        {/* <View>
           <Text>Image or geolocation</Text>
-        </View>
+        </View> */}
       </TouchableOpacity>
       { Platform.OS === "android" ? <KeyboardAvoidingView behavior="height" /> : null }
     </View>
